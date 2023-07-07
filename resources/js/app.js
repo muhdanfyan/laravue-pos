@@ -20,9 +20,18 @@ library.add(far);
 
 createInertiaApp({
     resolve: async (name) => {
-        const pages = import.meta.glob("./Pages/**/*.vue");
-        return (await pages[`./Pages/${name}.vue`]()).default;
-    },
+        const context = require.context("./Pages", true, /\.vue$/);
+        const modulePath = context.keys().find((path) =>
+          path.includes(`./${name}.vue`)
+        );
+        
+        if (modulePath) {
+          const module = await import(`./Pages/${modulePath.slice(2)}`);
+          return module.default || null;
+        }
+        
+        return null;
+      },
     setup({ el, App, props, plugin }) {
         createApp({ render: () => h(App, props) })
             .mixin({ methods: { route } })
